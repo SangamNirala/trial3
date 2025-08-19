@@ -167,11 +167,16 @@ class AptitudeQuestionBankTester:
                         required_fields = ["id", "question_text", "options", "correct_answer"]
                         
                         if all(field in sample_question for field in required_fields):
-                            details = f"Retrieved {len(questions)} questions, Total: {pagination.get('total', 'N/A')}"
+                            details = f"Retrieved {len(questions)} questions, Total: {data.get('total_count', 'N/A')}"
                             self.log_test("Questions Retrieval", True, details, {
                                 "sample_question_id": sample_question.get("id"),
                                 "has_options": len(sample_question.get("options", [])),
-                                "pagination": pagination
+                                "total_count": data.get("total_count"),
+                                "page_info": {
+                                    "page": data.get("page"),
+                                    "per_page": data.get("per_page"),
+                                    "total_pages": data.get("total_pages")
+                                }
                             })
                             return True
                         else:
