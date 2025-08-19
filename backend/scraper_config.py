@@ -241,18 +241,23 @@ INDIABIX_CONFIG = {
     }
 }
 
-# CSS selectors for IndiaBix
+# CSS selectors for IndiaBix (updated for current website structure)
 INDIABIX_SELECTORS = {
-    "question_container": ".bix-div-container",
-    "question_text": ".bix-td-qtxt",
-    "options_container": ".bix-tbl-options",
-    "option": ".bix-td-option",
-    "answer_container": ".bix-answer",
-    "explanation": ".bix-div-answer-description", 
-    "next_button": ".bix-btn-next",
-    "pagination": ".bix-pagination",
-    "category_links": ".bix-menu-item a",
-    "question_number": ".bix-question-no"
+    "question_container": ".question-section, .aptitude-question, .qa-question",
+    "question_text": ".question-text, .question p, h4, .question-title",
+    "options_container": ".options, .answer-options, .choices",
+    "option": ".option, .choice, li",
+    "answer_container": ".answer, .correct-answer, .solution",
+    "explanation": ".explanation, .answer-description, .solution-text", 
+    "next_button": ".next-question, .next, a[href*='next']",
+    "pagination": ".pagination, .page-nav",
+    "category_links": ".nav-item a, .category-link",
+    "question_number": ".question-no, .q-number, .question-count",
+    
+    # Alternative selectors for fallback
+    "fallback_question": "h1, h2, h3, h4, h5, h6, p",
+    "fallback_options": "ul li, ol li, .list-group-item",
+    "fallback_links": "a[href*='percentage'], a[href*='aptitude'], a[href*='question']"
 }
 
 # Quality thresholds
