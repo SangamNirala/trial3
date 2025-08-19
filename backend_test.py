@@ -156,9 +156,10 @@ class AptitudeQuestionBankTester:
             if response.status_code == 200:
                 data = response.json()
                 
-                if "questions" in data and "pagination" in data:
+                # Handle both possible response structures
+                if "questions" in data:
                     questions = data["questions"]
-                    pagination = data["pagination"]
+                    pagination = data.get("pagination", data)  # Fallback to data itself for pagination info
                     
                     if len(questions) > 0:
                         # Validate question structure
