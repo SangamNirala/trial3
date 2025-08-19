@@ -185,7 +185,7 @@ class AptitudeQuestionBankTester:
                     else:
                         self.log_test("Questions Retrieval", False, "No questions returned", data)
                 else:
-                    self.log_test("Questions Retrieval", False, "Invalid response structure", data)
+                    self.log_test("Questions Retrieval", False, "Invalid response structure - no questions field", data)
             else:
                 self.log_test("Questions Retrieval", False, f"HTTP {response.status_code}", response.text[:200])
                 
