@@ -47,6 +47,31 @@ async def start_medical_extraction(request: ScrapingRequest, background_tasks: B
             status_code=409, 
             detail="Scraping operation already in progress"
         )
+
+@router.post("/start-comprehensive-scraping", response_model=Dict[str, Any])
+async def start_comprehensive_scraping(request: ScrapingRequest, background_tasks: BackgroundTasks):
+    """Start Phase 2 comprehensive government sources scraping"""
+    
+    global phase1_system, current_operation
+    
+    # Validate request parameters
+    if request.target_documents and (request.target_documents < 1 or request.target_documents > 1000000):
+        raise HTTPException(
+            status_code=422,
+            detail="target_documents must be between 1 and 1,000,000"
+        )
+    
+    if request.quality_threshold and (request.quality_threshold < 0.0 or request.quality_threshold > 1.0):
+        raise HTTPException(
+            status_code=422,
+            detail="quality_threshold must be between 0.0 and 1.0"
+        )
+    
+    if current_operation and current_operation.get('status') == 'running':
+        raise HTTPException(
+            status_code=409, 
+            detail="Scraping operation already in progress"
+        )
     
     try:
         # Initialize Phase 1 system if not already done
