@@ -212,10 +212,18 @@ class TierScraperBase:
             return {'error': str(e)}
 
 class GovernmentScraper(TierScraperBase):
-    """Tier 1: Government sources scraper (NIH, CDC, FDA, etc.)"""
+    """Tier 1: Government sources scraper (NIH, CDC, FDA, etc.) - Phase 2 Enhanced"""
     
     def __init__(self):
         super().__init__(ScrapingTier.TIER_1_GOVERNMENT, max_concurrent=100)
+        
+        # Phase 2: Initialize comprehensive government scrapers
+        self.medlineplus_scraper = MedlinePlusAdvancedScraper()
+        self.ncbi_scraper = NCBIAdvancedScraper()
+        self.cdc_scraper = CDCAdvancedScraper()
+        self.fda_scraper = FDAAdvancedScraper()
+        
+        # Legacy government sources (Phase 1)
         self.government_sources = {
             'medlineplus': {
                 'base_url': 'https://medlineplus.gov',
@@ -251,47 +259,82 @@ class GovernmentScraper(TierScraperBase):
         }
     
     async def scrape_complete_tier(self) -> List[ScrapingResult]:
-        """Scrape all government medical sources"""
+        """Enhanced Phase 2: Scrape all government medical sources using comprehensive scrapers"""
         
-        logger.info(f"Starting {self.tier.value} scraping with {self.max_concurrent} concurrent workers")
+        logger.info(f"🚀 Starting {self.tier.value} Phase 2 comprehensive scraping")
         
+        # Launch Phase 2 comprehensive government scraping operations
+        phase2_scraping_tasks = [
+            self._execute_medlineplus_comprehensive(),
+            self._execute_ncbi_comprehensive(),
+            self._execute_cdc_comprehensive(),
+            self._execute_fda_comprehensive()
+        ]
+        
+        logger.info(f"⚡ Launching {len(phase2_scraping_tasks)} Phase 2 government scraping operations")
+        phase2_results = await asyncio.gather(*phase2_scraping_tasks, return_exceptions=True)
+        
+        # Process and consolidate Phase 2 results
         all_results = []
         
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=60),
-            connector=aiohttp.TCPConnector(limit=200, limit_per_host=50)
-        ) as session:
-            
-            for source_name, source_config in self.government_sources.items():
-                logger.info(f"Scraping {source_name}...")
-                
-                # Discover URLs for this source
-                source_urls = await self._discover_source_urls(source_name, source_config)
-                
-                # Create scraping tasks
-                tasks = [
-                    self.extract_content_from_url(url, session)
-                    for url in source_urls[:5000]  # Limit per source
-                ]
-                
-                # Execute in batches
-                batch_size = 100
-                for i in range(0, len(tasks), batch_size):
-                    batch = tasks[i:i + batch_size]
-                    batch_results = await asyncio.gather(*batch, return_exceptions=True)
-                    
-                    # Filter successful results
-                    valid_results = [r for r in batch_results if isinstance(r, ScrapingResult)]
-                    all_results.extend(valid_results)
-                    
-                    logger.info(f"{source_name} batch {i//batch_size + 1}: {len(valid_results)} successful extractions")
-                    
-                    # Adaptive delay between batches
-                    delay = await self._calculate_batch_delay(source_name)
-                    await asyncio.sleep(delay)
+        for result in phase2_results:
+            if isinstance(result, dict) and 'extracted_content' in result:
+                # Extract the actual ScrapingResult objects
+                extracted_content = result['extracted_content']
+                if isinstance(extracted_content, list):
+                    all_results.extend(extracted_content)
+            elif isinstance(result, list):
+                # Direct list of ScrapingResult objects
+                all_results.extend(result)
+            elif isinstance(result, Exception):
+                logger.warning(f"Phase 2 scraping error: {result}")
         
-        logger.info(f"Completed {self.tier.value} scraping: {len(all_results)} total extractions")
+        logger.info(f"✅ Phase 2 {self.tier.value} completed: {len(all_results)} total extractions")
         return all_results
+    
+    async def _execute_medlineplus_comprehensive(self) -> Dict[str, Any]:
+        """Execute MedlinePlus comprehensive scraping"""
+        
+        logger.info("🏥 Executing MedlinePlus comprehensive scraping")
+        
+        try:
+            return await self.medlineplus_scraper.scrape_complete_medlineplus()
+        except Exception as e:
+            logger.error(f"MedlinePlus comprehensive scraping failed: {e}")
+            return {'extracted_content': [], 'error': str(e)}
+    
+    async def _execute_ncbi_comprehensive(self) -> Dict[str, Any]:
+        """Execute NCBI comprehensive scraping"""
+        
+        logger.info("🔬 Executing NCBI comprehensive scraping")
+        
+        try:
+            return await self.ncbi_scraper.scrape_complete_ncbi_ecosystem()
+        except Exception as e:
+            logger.error(f"NCBI comprehensive scraping failed: {e}")
+            return {'extracted_content': [], 'error': str(e)}
+    
+    async def _execute_cdc_comprehensive(self) -> Dict[str, Any]:
+        """Execute CDC comprehensive scraping"""
+        
+        logger.info("🏛️ Executing CDC comprehensive scraping")
+        
+        try:
+            return await self.cdc_scraper.scrape_complete_cdc_knowledge()
+        except Exception as e:
+            logger.error(f"CDC comprehensive scraping failed: {e}")
+            return {'extracted_content': [], 'error': str(e)}
+    
+    async def _execute_fda_comprehensive(self) -> Dict[str, Any]:
+        """Execute FDA comprehensive scraping"""
+        
+        logger.info("🏛️ Executing FDA comprehensive scraping")
+        
+        try:
+            return await self.fda_scraper.scrape_complete_fda_database()
+        except Exception as e:
+            logger.error(f"FDA comprehensive scraping failed: {e}")
+            return {'extracted_content': [], 'error': str(e)}
     
     async def _discover_source_urls(self, source_name: str, source_config: Dict[str, Any]) -> List[str]:
         """Discover URLs for a government source"""
