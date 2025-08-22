@@ -45,8 +45,7 @@ class MedlinePlusAdvancedScraper:
             'videos': 'https://medlineplus.gov/medlineplus-videos/'
         }
         
-        # Advanced scraping capabilities
-        self.url_discoverer = URLDiscoveryAI()
+        # Advanced scraping capabilities  
         self.content_extractor = AdvancedContentExtractor()
         self.structure_analyzer = PageStructureAnalyzer()
         
