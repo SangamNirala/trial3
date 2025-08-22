@@ -281,5 +281,42 @@ async def run_extraction_background(operation_id: str):
         current_operation['error'] = str(e)
         current_operation['failed_at'] = datetime.utcnow()
 
+async def run_phase2_comprehensive_scraping(operation_id: str):
+    """Run Phase 2 comprehensive government sources scraping in background"""
+    
+    global phase1_system, current_operation
+    
+    try:
+        logger.info(f"Starting Phase 2 comprehensive scraping: {operation_id}")
+        
+        # Update progress
+        current_operation['progress']['current_source'] = 'executing'
+        
+        # Execute Phase 2 comprehensive scraping
+        results = await phase1_system.execute_phase2_comprehensive()
+        
+        # Update operation with results
+        current_operation['status'] = 'completed'
+        current_operation['completed_at'] = datetime.utcnow()
+        current_operation['results_summary'] = results
+        
+        # Update final progress
+        scraping_performance = results.get('scraping_performance', {})
+        current_operation['progress'].update({
+            'total_processed': scraping_performance.get('total_processed', 0),
+            'successful': scraping_performance.get('total_success', 0),
+            'failed': scraping_performance.get('total_processed', 0) - scraping_performance.get('total_success', 0),
+            'current_source': 'completed'
+        })
+        
+        logger.info(f"Phase 2 comprehensive scraping completed: {operation_id}")
+        
+    except Exception as e:
+        logger.error(f"Phase 2 comprehensive scraping failed: {e}")
+        
+        current_operation['status'] = 'failed'
+        current_operation['error'] = str(e)
+        current_operation['failed_at'] = datetime.utcnow()
+
 # Export router
 __all__ = ['router']
