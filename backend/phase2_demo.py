@@ -120,7 +120,8 @@ async def test_master_controller_integration():
         logger.info("✅ Master scraper initialized successfully")
         
         # Test government scraper Phase 2 integration
-        government_scraper = master_scraper.tier_scrapers.get('government')
+        from ai_scraper_core import ScrapingTier
+        government_scraper = master_scraper.tier_scrapers.get(ScrapingTier.TIER_1_GOVERNMENT)
         if government_scraper:
             logger.info("✅ Government scraper found in master controller")
             
