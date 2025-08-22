@@ -21,6 +21,12 @@ from ai_scraper_core import (
     IntelligentTaskScheduler, AdaptiveRateLimiter, IntelligentProxyRotator, AdvancedDeduplicator
 )
 
+# Import Phase 2 comprehensive scrapers
+from medlineplus_scraper import MedlinePlusAdvancedScraper
+from ncbi_scraper import NCBIAdvancedScraper
+from cdc_scraper import CDCAdvancedScraper
+from fda_scraper import FDAAdvancedScraper
+
 logger = logging.getLogger(__name__)
 
 class TierScraperBase:
