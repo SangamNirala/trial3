@@ -415,6 +415,14 @@ async def cancel_scraping_job(job_id: str):
         logging.error(f"Error cancelling scraping job {job_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel scraping job")
 
+# Import and include medical scraper API
+try:
+    from medical_scraper_api import router as medical_scraper_router
+    app.include_router(medical_scraper_router)
+    logging.info("✅ Medical Scraper API integrated successfully")
+except ImportError as e:
+    logging.warning(f"⚠️ Medical Scraper API not available: {e}")
+
 # Include the router in the main app
 app.include_router(api_router)
 
