@@ -31,3 +31,5 @@ aiofiles>=24.1.0
 asyncio-throttle>=1.0.2
 python-dateutil>=2.9.0
 textdistance>=4.6.3
+aiohttp>=3.9.0
+psutil>=5.9.0
