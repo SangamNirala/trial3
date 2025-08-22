@@ -13,6 +13,7 @@ from collections import defaultdict, deque
 import statistics
 import random
 import time
+from urllib.parse import urljoin, urlparse
 
 from ai_scraper_core import (
     ScrapingTask, ScrapingResult, ScrapingPriority, ContentType, ScrapingTier,
