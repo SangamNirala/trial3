@@ -74,46 +74,59 @@ async def start_comprehensive_scraping(request: ScrapingRequest, background_task
         )
     
     try:
-        # Initialize Phase 1 system if not already done
-        if not phase1_system:
+        # Initialize Phase 2 system if not already done
+        if phase1_system is None:
+            from phase1_implementation import Phase1MedicalScraperSystem
             phase1_system = Phase1MedicalScraperSystem()
         
-        # Configure system based on request
+        # Configure system for Phase 2 comprehensive scraping
         phase1_system.phase1_config.update({
-            'target_documents': request.target_documents,
-            'max_concurrent_workers': request.max_concurrent_workers,
-            'quality_threshold': request.quality_threshold
+            'target_documents': request.target_documents or 200000,  # Phase 2 default
+            'max_concurrent_workers': request.max_concurrent_workers or 200,
+            'quality_threshold': request.quality_threshold or 0.8,
+            'phase2_mode': True,
+            'government_sources_focus': True
         })
         
-        # Create operation tracking
-        operation_id = f"scraping_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        # Create Phase 2 operation tracking
+        operation_id = f"phase2_comprehensive_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
         current_operation = {
             'operation_id': operation_id,
             'status': 'running',
+            'type': 'phase2_comprehensive',
             'started_at': datetime.utcnow(),
             'config': request.dict(),
             'progress': {
                 'total_processed': 0,
                 'successful': 0,
                 'failed': 0,
-                'current_tier': 'initializing'
+                'current_source': 'initializing',
+                'scrapers_active': {
+                    'medlineplus': 'pending',
+                    'ncbi': 'pending', 
+                    'cdc': 'pending',
+                    'fda': 'pending'
+                }
             }
         }
         
-        # Start extraction in background
-        background_tasks.add_task(run_extraction_background, operation_id)
+        # Start Phase 2 comprehensive scraping in background
+        background_tasks.add_task(run_phase2_comprehensive_scraping, operation_id)
         
         return {
             'operation_id': operation_id,
             'status': 'started',
-            'message': 'Medical data extraction started successfully',
+            'message': 'Phase 2 comprehensive government sources scraping started',
+            'type': 'phase2_comprehensive',
+            'target_sources': ['MedlinePlus', 'NCBI', 'CDC', 'FDA'],
+            'target_documents': request.target_documents or 200000,
             'config': request.dict(),
-            'estimated_duration': 'Variable based on target size'
+            'estimated_duration': '2-6 hours for full comprehensive scraping'
         }
         
     except Exception as e:
-        logger.error(f"Failed to start extraction: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to start Phase 2 comprehensive scraping: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start comprehensive scraping: {str(e)}")
 
 @router.get("/status", response_model=ScrapingStatus)
 async def get_scraping_status():
