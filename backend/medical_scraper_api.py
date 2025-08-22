@@ -42,11 +42,68 @@ async def start_medical_extraction(request: ScrapingRequest, background_tasks: B
     
     global phase1_system, current_operation
     
+    # Validate request parameters
+    if request.target_documents and (request.target_documents < 1 or request.target_documents > 1000000):
+        raise HTTPException(
+            status_code=422,
+            detail="target_documents must be between 1 and 1,000,000"
+        )
+    
+    if request.max_concurrent_workers and (request.max_concurrent_workers < 1 or request.max_concurrent_workers > 1000):
+        raise HTTPException(
+            status_code=422,
+            detail="max_concurrent_workers must be between 1 and 1,000"
+        )
+    
+    if request.quality_threshold and (request.quality_threshold < 0.0 or request.quality_threshold > 1.0):
+        raise HTTPException(
+            status_code=422,
+            detail="quality_threshold must be between 0.0 and 1.0"
+        )
+    
     if current_operation and current_operation.get('status') == 'running':
         raise HTTPException(
             status_code=409, 
             detail="Scraping operation already in progress"
         )
+    
+    try:
+        # Initialize Phase 1 system if not already done
+        if phase1_system is None:
+            from phase1_implementation import Phase1MedicalScraperSystem
+            phase1_system = Phase1MedicalScraperSystem()
+        
+        # Create operation tracking
+        operation_id = f"phase1_extraction_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        current_operation = {
+            'operation_id': operation_id,
+            'status': 'running',
+            'type': 'phase1_extraction',
+            'started_at': datetime.utcnow(),
+            'config': request.dict(),
+            'progress': {
+                'total_processed': 0,
+                'successful': 0,
+                'failed': 0,
+                'current_tier': 'initializing'
+            }
+        }
+        
+        # Start extraction in background
+        background_tasks.add_task(run_extraction_background, operation_id)
+        
+        return {
+            'operation_id': operation_id,
+            'status': 'started',
+            'message': 'Medical data extraction started',
+            'type': 'phase1_extraction',
+            'config': request.dict(),
+            'estimated_duration': '30-60 minutes for standard extraction'
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to start medical extraction: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start extraction: {str(e)}")
 
 @router.post("/start-comprehensive-scraping", response_model=Dict[str, Any])
 async def start_comprehensive_scraping(request: ScrapingRequest, background_tasks: BackgroundTasks):
